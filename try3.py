@@ -5,24 +5,20 @@ import re
 from PyPDF2 import PdfReader
 import mysql.connector
 
-# Email credentials
 EMAIL = "harishasivakumar001@gmail.com"
 PASSWORD = "xrwh sspv miud grpj"
 IMAP_SERVER = "imap.gmail.com"
 ALLOWED_EXTENSIONS = [".pdf", ".docx", ".doc"]
 
-# Database credentials
 DB_HOST = "localhost"
 DB_USER = "root"
 DB_PASSWORD = "Harisha#8"
 DB_NAME = "haridb 1"
 
-# Function to check if the file is a resume
 def is_resume(filename):
     nameFile, ext = os.path.splitext(filename)
     return (ext.lower() in ALLOWED_EXTENSIONS) and ("resume" in nameFile.lower())
 
-# Extract phone numbers and emails from text
 def extract_phone_and_email(text):
     phone_pattern = r"\b\d{10}\b"
     email_pattern = r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
@@ -30,7 +26,6 @@ def extract_phone_and_email(text):
     emails = re.findall(email_pattern, text)
     return phone_numbers, emails
 
-# Download resumes from email
 def download_resumes(mail):
     mail.select("inbox")
     status, messages = mail.search(None, "ALL")
@@ -59,7 +54,6 @@ def download_resumes(mail):
             print(f"Error processing email ID {email_id.decode()}: {e}")
     return downloaded_files
 
-# Process resumes and insert data into the database
 def process_resumes_and_insert_to_db(file_paths):
     try:
         db = mysql.connector.connect(
@@ -76,10 +70,10 @@ def process_resumes_and_insert_to_db(file_paths):
                 for page in reader.pages:
                     resume_content += page.extract_text()
                 
-                # Extract phone numbers and emails
+            
                 phone_numbers, emails = extract_phone_and_email(resume_content)
 
-                # Insert data into database
+            
                 for phone in phone_numbers:
                     for email in emails:
                         sql = "INSERT INTO resumetest (phonenumber, email) VALUES (%s, %s)"
@@ -101,15 +95,11 @@ if __name__ == "__main__":
         mail = imaplib.IMAP4_SSL(IMAP_SERVER, timeout=10)
         mail.login(EMAIL, PASSWORD)
         print("Logged in to email successfully.\n")
-
-        # Step 1: Download resumes
         downloaded_files = download_resumes(mail)
         if not downloaded_files:
             print("No resumes found.")
         else:
             print(f"Downloaded {len(downloaded_files)} resumes.")
-
-            # Step 2: Process and insert into the database
             process_resumes_and_insert_to_db(downloaded_files)
 
     except Exception as e:
